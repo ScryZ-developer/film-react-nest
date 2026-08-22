@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import 'dotenv/config';
+import { ConfigService } from '@nestjs/config';
 import { FILMS_REPOSITORY } from './films.repository';
 import { FilmsMemoryRepository } from './films-memory.repository';
 import { FilmsMongodbRepository } from './films-mongodb.repository';
@@ -7,12 +7,20 @@ import { FilmsMongodbRepository } from './films-mongodb.repository';
 @Global()
 @Module({
   providers: [
+    FilmsMongodbRepository,
+    FilmsMemoryRepository,
     {
       provide: FILMS_REPOSITORY,
-      useClass:
-        process.env.DATABASE_DRIVER === 'memory'
-          ? FilmsMemoryRepository
-          : FilmsMongodbRepository,
+      useFactory: (
+        configService: ConfigService,
+        mongo: FilmsMongodbRepository,
+        memory: FilmsMemoryRepository,
+      ) => {
+        return configService.get<string>('DATABASE_DRIVER') === 'memory'
+          ? memory
+          : mongo;
+      },
+      inject: [ConfigService, FilmsMongodbRepository, FilmsMemoryRepository],
     },
   ],
   exports: [FILMS_REPOSITORY],
