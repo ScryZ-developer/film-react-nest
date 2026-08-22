@@ -4,33 +4,36 @@
 
 ### MongoDB
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`.
+Установите MongoDB, скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker.
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+Импортируйте файл `backend/test/mongodb_initial_stub.json` в коллекцию `films` (MongoDB Compass → Add Data → Import JSON).
 
 ### Бэкенд
 
-Перейдите в папку с исходным кодом бэкенда
+Перейдите в папку с исходным кодом бэкенда:
 
-`cd backend`
+```bash
+cd backend
+```
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+Установите зависимости:
 
-`npm ci` или `yarn install --frozen-lockfile`
+```bash
+npm ci
+```
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+Создайте `.env` файл из примера `.env.example` и укажите:
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+- `PORT` — порт HTTP-сервера, например `3000`
+- `DATABASE_DRIVER` — тип хранилища, в нашем случае `mongodb`
+- `DATABASE_URL` — адрес MongoDB, например `mongodb://127.0.0.1:27017/prac`
 
 MongoDB должна быть установлена и запущена.
 
 Запустите бэкенд:
 
-`npm start:debug`
+```bash
+npm run start:debug
+```
 
 Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
-
-
-
-
