@@ -20,6 +20,10 @@ export class FilmsMongodbRepository
   constructor(@Inject('CONFIG') private readonly config: AppConfig) {}
 
   async onModuleInit() {
+    if (this.config.database.driver === 'memory') {
+      return;
+    }
+
     await connect(this.config.database.url);
   }
 
@@ -42,7 +46,7 @@ export class FilmsMongodbRepository
     sessionId: string,
     seats: string[],
   ): Promise<void> {
-    const film = await FilmModel.findOne({ id: filmId }).exec();
+    const film = await FilmModel.findOne({ id: filmId }).lean().exec();
     if (!film) {
       throw new NotFoundException({ error: 'Фильм не найден' });
     }
@@ -52,15 +56,28 @@ export class FilmsMongodbRepository
       throw new NotFoundException({ error: 'Сеанс не найден' });
     }
 
-    const taken = new Set(session.taken);
-    const occupied = seats.find((seat) => taken.has(seat));
-    if (occupied) {
+    const result = await FilmModel.updateOne(
+      { id: filmId },
+      {
+        $addToSet: {
+          'schedule.$[session].taken': { $each: seats },
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            'session.id': sessionId,
+            'session.taken': { $nin: seats },
+          },
+        ],
+      },
+    ).exec();
+
+    if (result.modifiedCount === 0) {
+      const occupied = seats.find((seat) => session.taken.includes(seat));
       throw new BadRequestException({
-        error: `Место ${occupied} уже занято`,
+        error: `Место ${occupied ?? seats[0]} уже занято`,
       });
     }
-
-    session.taken.push(...seats);
-    await film.save();
   }
 }
