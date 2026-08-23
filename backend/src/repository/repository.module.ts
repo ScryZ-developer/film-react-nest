@@ -1,11 +1,13 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AppConfigModule } from '../app.config.module';
 import { FILMS_REPOSITORY } from './films.repository';
 import { FilmsMemoryRepository } from './films-memory.repository';
 import { FilmsMongodbRepository } from './films-mongodb.repository';
 
 @Global()
 @Module({
+  imports: [AppConfigModule],
   providers: [
     FilmsMongodbRepository,
     FilmsMemoryRepository,
