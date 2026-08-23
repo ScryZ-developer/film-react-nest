@@ -1,7 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ValidationError } from 'class-validator';
 import { AppModule } from './app.module';
+
+function flattenValidationMessages(errors: ValidationError[]): string[] {
+  return errors.flatMap((error) => [
+    ...Object.values(error.constraints ?? {}),
+    ...flattenValidationMessages(error.children ?? []),
+  ]);
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +24,12 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      exceptionFactory: (errors: ValidationError[]) => {
+        const messages = flattenValidationMessages(errors);
+        return new BadRequestException({
+          error: messages.join('; ') || 'Некорректные данные запроса',
+        });
+      },
     }),
   );
   await app.listen(port);

@@ -11,6 +11,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { ItemsResponseDto } from '../../common/items-response.dto';
 
 export class TicketDto {
   @IsUUID()
@@ -59,13 +60,4 @@ export class OrderedTicketDto extends TicketDto {
   id: string;
 }
 
-export class OrderResponseDto {
-  @IsInt()
-  @Min(0)
-  total: number;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => OrderedTicketDto)
-  items: OrderedTicketDto[];
-}
+export type OrderResponseDto = ItemsResponseDto<OrderedTicketDto>;

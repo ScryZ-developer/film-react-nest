@@ -9,6 +9,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { ItemsResponseDto } from '../../common/items-response.dto';
 
 export class FilmDto {
   @IsUUID()
@@ -81,24 +82,6 @@ export class FilmDetailsDto extends FilmDto {
   schedule: ScheduleDto[];
 }
 
-export class FilmsResponseDto {
-  @IsInt()
-  @Min(0)
-  total: number;
+export type FilmsResponseDto = ItemsResponseDto<FilmDto>;
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => FilmDto)
-  items: FilmDto[];
-}
-
-export class ScheduleResponseDto {
-  @IsInt()
-  @Min(0)
-  total: number;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ScheduleDto)
-  items: ScheduleDto[];
-}
+export type ScheduleResponseDto = ItemsResponseDto<ScheduleDto>;
