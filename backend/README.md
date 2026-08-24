@@ -1,6 +1,6 @@
 # Backend «Film!»
 
-NestJS API афиши и бронирования билетов. Данные фильмов, сеансов и занятых мест хранятся в MongoDB.
+NestJS API афиши и бронирования билетов. Данные фильмов, сеансов и занятых мест хранятся в PostgreSQL через TypeORM.
 
 ## Настройка
 
@@ -21,10 +21,19 @@ cp .env.example .env
 | Переменная | Описание | Пример |
 |---|---|---|
 | `PORT` | Порт HTTP-сервера | `3000` |
-| `DATABASE_DRIVER` | Драйвер: `mongodb` или `memory` | `mongodb` |
-| `DATABASE_URL` | Строка подключения к MongoDB | `mongodb://localhost:27017/prac` |
+| `DATABASE_DRIVER` | Драйвер: `postgres` | `postgres` |
+| `DATABASE_URL` | Строка подключения к PostgreSQL | `postgres://localhost:5432/prac` |
+| `DATABASE_USERNAME` | Логин пользователя БД | `prac` |
+| `DATABASE_PASSWORD` | Пароль пользователя БД | `prac` |
 
-3. Запустите MongoDB и импортируйте `test/mongodb_initial_stub.json` в коллекцию `films` базы из `DATABASE_URL` (Compass → Add Data → Import JSON или `mongoimport`).
+3. Запустите PostgreSQL и выполните SQL из `test/`:
+
+```bash
+docker compose up -d
+docker exec -i postgres_container psql -U prac -d prac < test/prac.init.sql
+docker exec -i postgres_container psql -U prac -d prac < test/prac.films.sql
+docker exec -i postgres_container psql -U prac -d prac < test/prac.shedules.sql
+```
 
 ## Запуск
 
@@ -41,5 +50,4 @@ npm run lint
 npm run lint:fix
 ```
 
-- API: `http://localhost:3000/api/afisha`
-- Статика: `http://localhost:3000/content/afisha`
+После запуска API доступно по адресу `http://localhost:3000/api/afisha`, статика - `http://localhost:3000/content/afisha`.
