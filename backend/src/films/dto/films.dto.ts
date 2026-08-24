@@ -1,1 +1,87 @@
-//TODO описать DTO для запросов к /films
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { ItemsResponseDto } from '../../common/items-response.dto';
+
+export class FilmDto {
+  @IsUUID()
+  id: string;
+
+  @IsNumber()
+  rating: number;
+
+  @IsString()
+  @IsNotEmpty()
+  director: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  tags: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  about: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @IsString()
+  @IsNotEmpty()
+  image: string;
+
+  @IsString()
+  @IsNotEmpty()
+  cover: string;
+}
+
+export class ScheduleDto {
+  @IsUUID()
+  id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  daytime: string;
+
+  @IsInt()
+  hall: number;
+
+  @IsInt()
+  @Min(1)
+  rows: number;
+
+  @IsInt()
+  @Min(1)
+  seats: number;
+
+  @IsNumber()
+  @Min(0)
+  price: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  taken: string[];
+}
+
+export class FilmDetailsDto extends FilmDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleDto)
+  schedule: ScheduleDto[];
+}
+
+export type FilmsResponseDto = ItemsResponseDto<FilmDto>;
+
+export type ScheduleResponseDto = ItemsResponseDto<ScheduleDto>;
