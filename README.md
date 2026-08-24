@@ -1,39 +1,102 @@
 # FILM!
 
-## Установка
+Онлайн-сервис бронирования билетов в кинотеатр.
 
-### MongoDB
+- **Frontend** — React + Vite
+- **Backend** — NestJS
+- **База данных** — MongoDB (mongoose)
 
-Установите MongoDB, скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker.
+API описан в `film.yml`, коллекция Postman — в `film.postman.json`.
 
-Импортируйте файл `backend/test/mongodb_initial_stub.json` в коллекцию `films` (MongoDB Compass → Add Data → Import JSON).
+## Быстрый старт
 
-### Бэкенд
+### 1. MongoDB
 
-Перейдите в папку с исходным кодом бэкенда:
+Установите MongoDB локально или запустите в Docker:
+
+```bash
+docker run -d --name film-mongo -p 27017:27017 mongo:latest
+```
+
+Импортируйте тестовые данные из `backend/test/mongodb_initial_stub.json` в коллекцию `films` базы `prac`:
+
+- через MongoDB Compass: Add Data → Import JSON;
+- или через `mongoimport`:
+
+```bash
+docker cp backend/test/mongodb_initial_stub.json film-mongo:/tmp/films.json
+docker exec film-mongo mongoimport --db prac --collection films --file /tmp/films.json --jsonArray --drop
+```
+
+### 2. Backend
 
 ```bash
 cd backend
-```
-
-Установите зависимости:
-
-```bash
 npm ci
+cp .env.example .env
+npm run start:dev
 ```
 
-Создайте `.env` файл из примера `.env.example` и укажите:
+Параметры в `.env`:
 
-- `PORT` — порт HTTP-сервера, например `3000`
-- `DATABASE_DRIVER` — тип хранилища, в нашем случае `mongodb`
-- `DATABASE_URL` — адрес MongoDB, например `mongodb://127.0.0.1:27017/prac`
+| Переменная | Описание | Пример |
+|---|---|---|
+| `PORT` | Порт HTTP-сервера | `3000` |
+| `DATABASE_DRIVER` | Драйвер хранилища | `mongodb` |
+| `DATABASE_URL` | Строка подключения к MongoDB | `mongodb://localhost:27017/prac` |
 
-MongoDB должна быть установлена и запущена.
+После запуска:
 
-Запустите бэкенд:
+- API: `http://localhost:3000/api/afisha`
+- Статика: `http://localhost:3000/content/afisha`
+
+Полезные команды:
 
 ```bash
+npm run start
+npm run start:dev
 npm run start:debug
+npm run lint
+npm run lint:fix
 ```
 
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Параметры в `.env`:
+
+| Переменная | Описание | Пример |
+|---|---|---|
+| `VITE_API_URL` | URL API бэкенда | `http://localhost:3000/api/afisha` |
+| `VITE_CDN_URL` | URL статики (постеры) | `http://localhost:3000/content/afisha` |
+
+Приложение откроется на `http://localhost:5173/`. Vite проксирует `/api` и `/content` на бэкенд.
+
+## API
+
+| Метод | Путь | Описание |
+|---|---|---|
+| `GET` | `/api/afisha/films/` | Список фильмов |
+| `GET` | `/api/afisha/films/:id/schedule/` | Расписание сеансов фильма |
+| `POST` | `/api/afisha/order/` | Бронирование билетов |
+| `GET` | `/content/afisha/*` | Статические файлы (афиши) |
+
+## Структура
+
+```text
+film-react-nest/
+├── backend/          # NestJS API
+│   ├── public/       # Статика (постеры)
+│   ├── src/
+│   │   ├── films/    # Контроллер, сервис, DTO
+│   │   ├── order/    # Контроллер, сервис, DTO
+│   │   └── repository/
+│   └── test/         # Stub-данные и e2e
+└── frontend/         # React-клиент
+```

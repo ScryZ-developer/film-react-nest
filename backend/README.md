@@ -1,6 +1,6 @@
 # Backend «Film!»
 
-API афиши на NestJS. Фильмы, сеансы и занятые места хранятся в MongoDB.
+NestJS API афиши и бронирования билетов. Данные фильмов, сеансов и занятых мест хранятся в MongoDB.
 
 ## Настройка
 
@@ -10,13 +10,21 @@ API афиши на NestJS. Фильмы, сеансы и занятые мес�
 npm ci
 ```
 
-2. Скопируйте `.env.example` в `.env` и задайте параметры:
+2. Скопируйте `.env.example` в `.env`:
 
-- `PORT` — порт HTTP-сервера
-- `DATABASE_DRIVER` — `mongodb` или `memory`
-- `DATABASE_URL` — строка подключения к MongoDB, например `mongodb://localhost:27017/prac`
+```bash
+cp .env.example .env
+```
 
-3. Запустите MongoDB и импортируйте `test/mongodb_initial_stub.json` в коллекцию `films` выбранной базы (Compass → Add Data → Import JSON).
+Параметры:
+
+| Переменная | Описание | Пример |
+|---|---|---|
+| `PORT` | Порт HTTP-сервера | `3000` |
+| `DATABASE_DRIVER` | Драйвер: `mongodb` или `memory` | `mongodb` |
+| `DATABASE_URL` | Строка подключения к MongoDB | `mongodb://localhost:27017/prac` |
+
+3. Запустите MongoDB и импортируйте `test/mongodb_initial_stub.json` в коллекцию `films` базы из `DATABASE_URL` (Compass → Add Data → Import JSON или `mongoimport`).
 
 ## Запуск
 
@@ -33,4 +41,5 @@ npm run lint
 npm run lint:fix
 ```
 
-После запуска API доступно по адресу `http://localhost:3000/api/afisha`, статика — `http://localhost:3000/content/afisha`.
+- API: `http://localhost:3000/api/afisha`
+- Статика: `http://localhost:3000/content/afisha`
