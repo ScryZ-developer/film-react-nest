@@ -1,3 +1,9 @@
+# Compose file for the remote server (pulls images from GHCR, no local build).
+# Usage:
+#   cp .env.example .env
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+
 services:
   postgres:
     image: postgres:16
@@ -44,9 +50,6 @@ services:
 
   backend:
     image: ghcr.io/scryz-developer/film-react-nest-backend:latest
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
     container_name: backend_container
     env_file:
       - .env
@@ -64,12 +67,6 @@ services:
 
   frontend:
     image: ghcr.io/scryz-developer/film-react-nest-frontend:latest
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-/api/afisha}
-        VITE_CDN_URL: ${VITE_CDN_URL:-/content/afisha}
     container_name: frontend_container
     volumes:
       - frontend_dist:/usr/share/nginx/html
@@ -79,9 +76,6 @@ services:
 
   nginx:
     image: ghcr.io/scryz-developer/film-react-nest-nginx:latest
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
     container_name: nginx_container
     ports:
       - '${NGINX_PORT}:80'
