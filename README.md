@@ -12,7 +12,6 @@ API описан в `film.yml`, коллекция Postman - в `film.postman.js
 ## Ссылки
 
 - **Приложение:** http://scryz-film.nomorepartiessite.ru
-- **Репозиторий (ветка review-2):** https://github.com/ScryZ-developer/film-react-nest/tree/review-2
 
 ## Быстрый старт (локально без Docker)
 
