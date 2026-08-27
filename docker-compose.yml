@@ -26,6 +26,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4:8
     container_name: pgadmin_container
+    profiles:
+      - tools
     env_file:
       - .env
     environment:

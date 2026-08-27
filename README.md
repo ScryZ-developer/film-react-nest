@@ -69,7 +69,7 @@ npm run dev
 |---|---|---|
 | `dev` | `DevLogger` | Цветной вывод Nest `ConsoleLogger` для разработки |
 | `json` | `JsonLogger` | JSON-логи для машинной обработки |
-| `tskv` | `TskvLogger` | TSKV (tab-separated key=value) |
+| `tskv` | `TskvLogger` | TSKV (tab-separated key=value), префикс `tskv` |
 
 ## Тесты
 
@@ -95,7 +95,13 @@ docker compose up -d --build
 | Сервис | URL |
 |---|---|
 | Приложение (nginx) | http://localhost:80 |
-| pgAdmin | http://localhost:8080 |
+| pgAdmin (опционально) | http://localhost:8080 |
+
+pgAdmin не стартует по умолчанию. Для локальной настройки БД:
+
+```bash
+docker compose --profile tools up -d pgadmin
+```
 
 Образы публикуются в GHCR:
 
@@ -103,13 +109,7 @@ docker compose up -d --build
 - `ghcr.io/scryz-developer/film-react-nest-frontend`
 - `ghcr.io/scryz-developer/film-react-nest-nginx`
 
-### Наполнение БД через pgAdmin
-
-1. Откройте http://localhost:8080 и войдите (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` из `.env`).
-2. Добавьте сервер: Host `postgres`, Port `5432`, Database/User/Password из `.env`.
-3. Выполните SQL из `backend/test/`: `prac.init.sql`, затем `prac.films.sql` и `prac.shedules.sql`.
-
-Или из хоста:
+### Наполнение БД
 
 ```bash
 docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.init.sql
@@ -117,82 +117,76 @@ docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.films
 docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.shedules.sql
 ```
 
-## Деплой на Yandex Cloud
+Через pgAdmin (локально, профиль `tools`): Host `postgres`, Port `5432`, учётные данные из `.env`.
 
-### 1. Аккаунт и ВМ
+## Деплой на сервер (любой VPS)
 
-1. Зарегистрируйтесь в [Yandex Cloud](https://console.yandex.cloud/), создайте платёжный аккаунт (грант практикума).
-2. Compute Cloud - создать ВМ:
-   - образ: Ubuntu 22.04 LTS
-   - публичный IP
-   - SSH-ключ (добавьте свой)
-   - группы безопасности: входящие TCP `22`, `80` (и временно `8080` для pgAdmin)
-3. Дождитесь создания и скопируйте **публичный IP**.
+Учебный домен `*.nomorepartiessite.ru` указывает **A-запись на публичный IP сервера**. Облако может быть любым: Yandex Cloud, Selectel, Timeweb, Hetzner, DigitalOcean, Oracle Cloud Free Tier и т.д.
 
-### 2. Домен
+### 1. Сервер
 
-1. Откройте сервис учебных доменов практикума.
-2. Создайте поддомен (фронтенд) и привяжите его к публичному IP ВМ.
-3. Подождите пару минут, пока DNS обновится.
+- Ubuntu 22.04/24.04, публичный IPv4
+- Открыты входящие TCP **22** (SSH) и **80** (сайт)
+- pgAdmin **не** публикуйте в интернет (в prod compose порт закрыт)
 
-Текущий домен проекта: **http://scryz-film.nomorepartiessite.ru** (IP `158.160.199.240`).
+### 2. Домен практикума
 
-### 3. Образы в GHCR
+1. Создайте поддомен (фронтенд), например `scryz-film`
+2. A-запись = **текущий** публичный IP сервера
+3. После перезапуска ВМ с динамическим IP обновите A-запись
 
-Сначала опубликуйте образы (пуш в `review-2` / `main` запустит Actions, либо локально):
+### 3. GHCR
 
-```bash
-docker compose build
-echo YOUR_GITHUB_TOKEN | docker login ghcr.io -u ScryZ-developer --password-stdin
-docker compose push
-```
+Сделайте пакеты **Public** в GitHub Packages или соберите на сервере (`docker compose up --build`).
 
-В GitHub - Packages сделайте пакеты **Public**.
-
-### 4. На сервере: Docker и запуск
+### 4. Запуск на сервере
 
 ```bash
-ssh ubuntu@158.160.199.240
-
 sudo apt update
-sudo apt install -y docker.io docker-compose-v2
+sudo apt install -y docker.io docker-compose-v2 git
 sudo usermod -aG docker $USER
 # перелогиньтесь по SSH
 
-mkdir -p ~/film && cd ~/film
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/ScryZ-developer/film-react-nest/review-2/scripts/deploy-server.sh)"
 ```
 
-Скопируйте на сервер файлы `docker-compose.prod.yml` (переименуйте в `docker-compose.yml`) и `.env` (из `.env.example`).
+Или вручную:
 
 ```bash
-docker compose pull
-docker compose up -d
-docker compose ps
+git clone -b review-2 https://github.com/ScryZ-developer/film-react-nest.git film
+cd film
+cp .env.example .env
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Проверьте в браузере: http://scryz-film.nomorepartiessite.ru
-
-### 5. Наполнить БД
-
-Временно откройте порт `8080` или используйте SSH-туннель:
+### 5. База и проверка
 
 ```bash
-ssh -L 8080:localhost:8080 ubuntu@158.160.199.240
+docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.init.sql
+docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.films.sql
+docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.shedules.sql
+curl -s http://localhost/api/afisha/films | head
 ```
 
-Откройте http://localhost:8080 - pgAdmin - подключитесь к Host `postgres` и выполните SQL из `backend/test`.
+Сайт: http://scryz-film.nomorepartiessite.ru
 
-Либо с локальной машины:
+### pgAdmin на сервере (только SSH-туннель)
 
 ```bash
-scp backend/test/prac.*.sql ubuntu@158.160.199.240:~/film/
-ssh ubuntu@158.160.199.240
-cd ~/film
-docker exec -i postgres_container psql -U prac -d prac < prac.init.sql
-docker exec -i postgres_container psql -U prac -d prac < prac.films.sql
-docker exec -i postgres_container psql -U prac -d prac < prac.shedules.sql
+ssh -L 8080:localhost:8080 ubuntu@ВАШ_IP
 ```
 
-После наполнения закройте `8080` в firewall.
+В `docker-compose.prod.yml` pgAdmin без публичного порта. Для разовой настройки временно поднимите туннель к контейнеру или используйте `docker exec` + SQL-файлы.
+
+## Альтернативы без Yandex Cloud
+
+| Вариант | Плюсы | Минусы |
+|---|---|---|
+| **Любой VPS + Docker** (рекомендуется) | Тот же `docker-compose.prod.yml`, домен практикума работает | Нужен сервер с белым IP |
+| **Сборка на сервере из git** | Не нужен Public GHCR | Дольше, нужны ресурсы на build |
+| **GitHub Actions + SSH deploy** | Автообновление после push | Настройка секретов SSH на сервере |
+
+Не подходят для учебного домена: GitHub Pages, локальный ПК без VPS (домен не укажет на localhost), чистый serverless без постоянного IP.
 
 GitHub Actions (`.github/workflows/docker-publish.yml`) собирает образы и публикует их в GitHub Container Registry.

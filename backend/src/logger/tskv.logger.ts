@@ -12,11 +12,11 @@ export class TskvLogger implements LoggerService {
       fields.optionalParams = this.stringifyValue(optionalParams);
     }
 
-    return (
-      Object.entries(fields)
-        .map(([key, value]) => `${key}=${value}`)
-        .join('\t') + '\n'
-    );
+    const body = Object.entries(fields)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\t');
+
+    return `tskv\t${body}\n`;
   }
 
   log(message: unknown, ...optionalParams: unknown[]) {

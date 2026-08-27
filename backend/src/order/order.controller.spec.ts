@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
@@ -54,6 +55,27 @@ describe('OrderController', () => {
 
       await expect(controller.create(dto)).resolves.toEqual(response);
       expect(orderService.create).toHaveBeenCalledWith(dto);
+    });
+
+    it('should propagate BadRequestException from OrderService', async () => {
+      const dto: CreateOrderDto = {
+        email: 'user@example.com',
+        phone: '+79990001122',
+        tickets: [
+          {
+            film: '11111111-1111-1111-1111-111111111111',
+            session: '22222222-2222-2222-2222-222222222222',
+            daytime: '2024-01-01T12:00:00',
+            row: 1,
+            seat: 2,
+            price: 350,
+          },
+        ],
+      };
+      const error = new BadRequestException({ error: 'Список билетов пуст' });
+      orderService.create.mockRejectedValue(error);
+
+      await expect(controller.create(dto)).rejects.toThrow(error);
     });
   });
 });

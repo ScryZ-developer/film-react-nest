@@ -23,21 +23,21 @@ describe('TskvLogger', () => {
     it('should format a flat TSKV record with tab-separated key=value fields', () => {
       const result = logger.formatMessage('log', 'hello');
 
-      expect(result).toBe('level=log\tmessage=hello\n');
+      expect(result).toBe('tskv\tlevel=log\tmessage=hello\n');
     });
 
     it('should stringify optionalParams as a single field', () => {
       const result = logger.formatMessage('warn', 'careful', 'OrderController');
 
       expect(result).toBe(
-        'level=warn\tmessage=careful\toptionalParams=["OrderController"]\n',
+        'tskv\tlevel=warn\tmessage=careful\toptionalParams=["OrderController"]\n',
       );
     });
 
     it('should stringify non-string messages as JSON', () => {
       const result = logger.formatMessage('error', { code: 404 });
 
-      expect(result).toBe('level=error\tmessage={"code":404}\n');
+      expect(result).toBe('tskv\tlevel=error\tmessage={"code":404}\n');
     });
   });
 

@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FilmsController } from './films.controller';
 import { FilmsService } from './films.service';
@@ -49,6 +50,13 @@ describe('FilmsController', () => {
       await expect(controller.findAll()).resolves.toEqual(response);
       expect(filmsService.findAll).toHaveBeenCalledTimes(1);
     });
+
+    it('should propagate errors from FilmsService', async () => {
+      const error = new Error('database unavailable');
+      filmsService.findAll.mockRejectedValue(error);
+
+      await expect(controller.findAll()).rejects.toThrow(error);
+    });
   });
 
   describe('findSchedule', () => {
@@ -72,6 +80,14 @@ describe('FilmsController', () => {
 
       await expect(controller.findSchedule(filmId)).resolves.toEqual(response);
       expect(filmsService.findSchedule).toHaveBeenCalledWith(filmId);
+    });
+
+    it('should propagate NotFoundException from FilmsService', async () => {
+      const filmId = '11111111-1111-1111-1111-111111111111';
+      const error = new NotFoundException({ error: 'Фильм не найден' });
+      filmsService.findSchedule.mockRejectedValue(error);
+
+      await expect(controller.findSchedule(filmId)).rejects.toThrow(error);
     });
   });
 });
