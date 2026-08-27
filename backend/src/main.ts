@@ -3,6 +3,7 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ValidationError } from 'class-validator';
 import { AppModule } from './app.module';
+import { createLogger } from './logger/logger.factory';
 
 function flattenValidationMessages(errors: ValidationError[]): string[] {
   return errors.flatMap((error) => [
@@ -12,10 +13,14 @@ function flattenValidationMessages(errors: ValidationError[]): string[] {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
   const configService = app.get(ConfigService);
   const port = Number(configService.get<string>('PORT') ?? 3000);
+  const loggerType = configService.get<string>('LOGGER_TYPE');
 
+  app.useLogger(createLogger(loggerType));
   app.setGlobalPrefix('api/afisha', {
     exclude: ['content/afisha/(.*)'],
   });

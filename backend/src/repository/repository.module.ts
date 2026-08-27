@@ -1,30 +1,45 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from '../app.config.module';
+import { Film } from '../films/entities/film.entity';
+import { Schedule } from '../films/entities/schedule.entity';
 import { FILMS_REPOSITORY } from './films.repository';
-import { FilmsMemoryRepository } from './films-memory.repository';
-import { FilmsMongodbRepository } from './films-mongodb.repository';
+import { FilmsPostgresRepository } from './films-postgres.repository';
 
 @Global()
 @Module({
-  imports: [AppConfigModule],
+  imports: [
+    AppConfigModule,
+    TypeOrmModule.forRootAsync({
+      imports: [AppConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl =
+          configService.get<string>('DATABASE_URL') ??
+          'postgres://localhost:5432/prac';
+        const { hostname, port, pathname } = new URL(databaseUrl);
+
+        return {
+          type: 'postgres' as const,
+          host: hostname,
+          port: Number(port) || 5432,
+          database: pathname.replace(/^\//, ''),
+          username: configService.get<string>('DATABASE_USERNAME'),
+          password: configService.get<string>('DATABASE_PASSWORD'),
+          entities: [Film, Schedule],
+          synchronize: false,
+        };
+      },
+    }),
+    TypeOrmModule.forFeature([Film, Schedule]),
+  ],
   providers: [
-    FilmsMongodbRepository,
-    FilmsMemoryRepository,
     {
       provide: FILMS_REPOSITORY,
-      useFactory: (
-        configService: ConfigService,
-        mongo: FilmsMongodbRepository,
-        memory: FilmsMemoryRepository,
-      ) => {
-        return configService.get<string>('DATABASE_DRIVER') === 'memory'
-          ? memory
-          : mongo;
-      },
-      inject: [ConfigService, FilmsMongodbRepository, FilmsMemoryRepository],
+      useClass: FilmsPostgresRepository,
     },
   ],
-  exports: [FILMS_REPOSITORY],
+  exports: [FILMS_REPOSITORY, TypeOrmModule],
 })
 export class RepositoryModule {}
