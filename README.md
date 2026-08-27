@@ -11,7 +11,7 @@ API описан в `film.yml`, коллекция Postman - в `film.postman.js
 
 ## Ссылки
 
-- **Приложение:** _вставьте сюда URL после деплоя, например `http://film.nomoreparties.site`_
+- **Приложение:** http://scryz-film.nomorepartiessite.ru
 
 ## Быстрый старт (локально без Docker)
 
