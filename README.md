@@ -178,15 +178,3 @@ ssh -L 8080:localhost:8080 ubuntu@ВАШ_IP
 ```
 
 В `docker-compose.prod.yml` pgAdmin без публичного порта. Для разовой настройки временно поднимите туннель к контейнеру или используйте `docker exec` + SQL-файлы.
-
-## Альтернативы без Yandex Cloud
-
-| Вариант | Плюсы | Минусы |
-|---|---|---|
-| **Любой VPS + Docker** (рекомендуется) | Тот же `docker-compose.prod.yml`, домен практикума работает | Нужен сервер с белым IP |
-| **Сборка на сервере из git** | Не нужен Public GHCR | Дольше, нужны ресурсы на build |
-| **GitHub Actions + SSH deploy** | Автообновление после push | Настройка секретов SSH на сервере |
-
-Не подходят для учебного домена: GitHub Pages, локальный ПК без VPS (домен не укажет на localhost), чистый serverless без постоянного IP.
-
-GitHub Actions (`.github/workflows/docker-publish.yml`) собирает образы и публикует их в GitHub Container Registry.
