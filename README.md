@@ -12,6 +12,7 @@ API описан в `film.yml`, коллекция Postman - в `film.postman.js
 ## Ссылки
 
 - **Приложение:** http://scryz-film.nomorepartiessite.ru
+- **Репозиторий (ветка review-2):** https://github.com/ScryZ-developer/film-react-nest/tree/review-2
 
 ## Быстрый старт (локально без Docker)
 
@@ -131,9 +132,11 @@ docker exec -i postgres_container psql -U prac -d prac < backend/test/prac.shedu
 
 ### 2. Домен
 
-1. Откройте [domain.nomoreparties.site](https://domain.nomoreparties.site/).
-2. Создайте поддомен и привяжите его к публичному IP ВМ.
+1. Откройте сервис учебных доменов практикума.
+2. Создайте поддомен (фронтенд) и привяжите его к публичному IP ВМ.
 3. Подождите пару минут, пока DNS обновится.
+
+Текущий домен проекта: **http://scryz-film.nomorepartiessite.ru** (IP `158.160.199.240`).
 
 ### 3. Образы в GHCR
 
@@ -150,7 +153,7 @@ docker compose push
 ### 4. На сервере: Docker и запуск
 
 ```bash
-ssh ubuntu@ВАШ_IP
+ssh ubuntu@158.160.199.240
 
 sudo apt update
 sudo apt install -y docker.io docker-compose-v2
@@ -168,23 +171,23 @@ docker compose up -d
 docker compose ps
 ```
 
-Проверьте в браузере: `http://ВАШ_ДОМЕН.nomoreparties.site`.
+Проверьте в браузере: http://scryz-film.nomorepartiessite.ru
 
 ### 5. Наполнить БД
 
 Временно откройте порт `8080` или используйте SSH-туннель:
 
 ```bash
-ssh -L 8080:localhost:8080 ubuntu@ВАШ_IP
+ssh -L 8080:localhost:8080 ubuntu@158.160.199.240
 ```
 
 Откройте http://localhost:8080 - pgAdmin - подключитесь к Host `postgres` и выполните SQL из `backend/test`.
 
-Либо с локальной машины (если есть `scp` + docker exec):
+Либо с локальной машины:
 
 ```bash
-scp backend/test/prac.*.sql ubuntu@ВАШ_IP:~/film/
-ssh ubuntu@ВАШ_IP
+scp backend/test/prac.*.sql ubuntu@158.160.199.240:~/film/
+ssh ubuntu@158.160.199.240
 cd ~/film
 docker exec -i postgres_container psql -U prac -d prac < prac.init.sql
 docker exec -i postgres_container psql -U prac -d prac < prac.films.sql
@@ -192,13 +195,5 @@ docker exec -i postgres_container psql -U prac -d prac < prac.shedules.sql
 ```
 
 После наполнения закройте `8080` в firewall.
-
-### 6. Ссылка в README
-
-Когда сайт открывается по домену, замените строку в разделе **Ссылки** на:
-
-```md
-- **Приложение:** http://ваш-поддомен.nomoreparties.site
-```
 
 GitHub Actions (`.github/workflows/docker-publish.yml`) собирает образы и публикует их в GitHub Container Registry.
